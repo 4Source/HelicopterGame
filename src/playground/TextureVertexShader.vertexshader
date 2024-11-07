@@ -1,17 +1,17 @@
 #version 330 core
 
 // Input vertex data, different for all executions of this shader.
-layout (location = 0) in vec3 vertexPosition_modelspace;
-layout (location = 1) in vec3 vertexColor;
-layout (location = 2) in vec2 vertexTexCoord;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTex;
 
 out vec3 color;
 out vec2 texCoord;
 
 void main(){
-    gl_Position.xyz = vertexPosition_modelspace;
+    gl_Position.xyz = aPos;
     gl_Position.w = 1.0;
-    color = vertexColor;
-    texCoord = vertexTexCoord;
+    color = aColor;
+    texCoord = aTex;
 }
 

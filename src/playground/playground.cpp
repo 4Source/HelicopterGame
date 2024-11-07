@@ -19,8 +19,10 @@ using namespace glm;
 
 #include <common/shader.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include<filesystem>
+namespace fs = std::filesystem;
 
 int main(void)
 {
@@ -49,7 +51,7 @@ int main(void)
     // start animation loop until escape key is pressed
     do
     {
-        clock_t beginTime = clock();
+        //clock_t beginTime = clock();
         
         //handleInputs(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll);
 
@@ -62,7 +64,7 @@ int main(void)
         updateAnimationLoop();
 
         // min time for one loop 10mss
-        Sleep(max(10 - float(clock() - beginTime), 0.f));
+        //Sleep(max(10 - float(clock() - beginTime), 0.f));
     } // Check if the ESC key was pressed or the window was closed
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
            glfwWindowShouldClose(window) == 0);
@@ -77,24 +79,24 @@ int main(void)
 
 void updateAnimationLoop()
 {
-    // Clear the screen
-    // Dark blue background
-    // TODO: Change Background to texture
+    // Specify the color of the background
     glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+
+    // Clear the back buffer 
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // render container
+    glUseProgram(shaderProgram);
+    
+    // Bind textures on corresponding texture units
+    //glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
 
-    // Use our shader
-    glUseProgram(shaderProgram);
-
+    // Bind the vertex array object
     glBindVertexArray(vertexArrayID);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 
     // Draw the triangles
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
-
-    //glDisableVertexAttribArray(0);
 
     // Swap buffers
     glfwSwapBuffers(window);
@@ -103,6 +105,7 @@ void updateAnimationLoop()
 
 bool initializeWindow()
 {
+    int width = 1024, height = 1024;
     // Initialise GLFW
     if (!glfwInit())
     {
@@ -117,7 +120,7 @@ bool initializeWindow()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow(1024, 1024, "Helicopter Game", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Helicopter Game", NULL, NULL);
     if (window == NULL)
     {
         fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
@@ -138,6 +141,8 @@ bool initializeWindow()
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
+    glViewport(0, 0, width, height);
+
     return true;
 }
 
@@ -154,64 +159,86 @@ bool initializeVertexbuffer()
     };    
     
     // g_vertex_buffer_indices = new GLint[6]{    // vertexbuffer_size * (positions + colors + texure coords)
-    GLfloat g_vertex_buffer_indices[] = {    // vertexbuffer_size * (positions + colors + texure coords)
+    GLfloat g_vertex_buffer_indices[] = {
         0, 1, 3,    // first triangle
         1, 2, 3     // second triangle
     };
 
+    // Generate the vertex array object and bind it
     glGenVertexArrays(1, &vertexArrayID); // VAO
-    glGenBuffers(1, &vertexbuffer); // VBO
-    glGenBuffers(1, &elementbuffer); // EBO
-
     glBindVertexArray(vertexArrayID);
-    
+
+    // Generate the vertex buffer object and link it to vertices
+    glGenBuffers(1, &vertexbuffer); // VBO
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+    // Generate element buffer object and link it ot indices
+    glGenBuffers(1, &elementbuffer); // EBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_vertex_buffer_indices), g_vertex_buffer_indices, GL_STATIC_DRAW);
 
+    // Link vertex buffer object attributes 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
     // position attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
     // position attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    // Unbind all to prevent accidentally modifying them
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return true;
 }
 
 bool initialzeTexture()
 {
-    // Helicopter asset
+    // Import the texture
     // https://opengameart.org/content/helicopter-2
-    char* helicopterPath = "./../assets/separated_frames/helicopter_1.png";
+    std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
+    std::string helicopterPath = parentDir + "\\assets\\separated_frames\\helicopter_1.png";
     int helicopterWidth, helicopterHeight, helicopterNrChannels;
-    unsigned char* helicopterData = stbi_load(helicopterPath, &helicopterWidth, &helicopterHeight, &helicopterNrChannels, 0);
+    unsigned char* helicopterData = stbi_load(helicopterPath.c_str(), &helicopterWidth, &helicopterHeight, &helicopterNrChannels, 0);
 
     if (!helicopterData) {
-        fprintf(stderr, "Failed to load image %s\n", helicopterPath);
+        fprintf(stderr, "Failed to load image %s\n", helicopterPath.c_str());
         return false;
     }
 
+    // Generate OpenGL texture object
     glGenTextures(1, &helicopterTextureID);
+
+    // Assign the texture to a texture unit
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // GL_NEAREST
+
+    glPolygonMode(GL_FRONT, GL_FILL);
+    glPolygonMode(GL_BACK, GL_FILL);
+
+    // Configure the type of algorithm that is used to make the image smaller or bigger
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, helicopterWidth, helicopterHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, helicopterData);
+    // Configure the way the texture repeats
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Assign the image to the OpenGL texture object
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, helicopterWidth, helicopterHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, helicopterData);
+    // Generate Mipmap
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    // Delete the image data
     stbi_image_free(helicopterData);
 
+    // Unbind the OpenGL texture object
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // Background asset 
     // <a href="https://www.vectorstock.com/royalty-free-vector/turquoise-cave-of-stalagmites-and-stalactites-vector-50064667">Vector image by VectorStock / Heorhii</a>
@@ -219,8 +246,10 @@ bool initialzeTexture()
     //glActiveTexture(GL_TEXTURE2);
     //glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
 
-    //glUseProgram(shaderProgram);
-    //glUniform1i(glGetUniformLocation(shaderProgram, "helicopterTextureID"), 0);
+    // Activate the Shader program
+    glUseProgram(shaderProgram);
+    // Set the value of the uniform 
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex0"), 0);
     //glUniform1i(glGetUniformLocation(shaderProgram, "helicopterTextureID"), 1);
 
     return true;
@@ -243,7 +272,7 @@ bool updateVertexbuffer(float& deltaX, float& deltaY, float& deltaRoll, float& c
     }
 
     // Window bounding
-    for (int i = 0; i < vertexbuffer_size * 3; i += 3)
+    for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
     {
         if (deltaX == 0 && deltaY == 0) 
         {
@@ -276,7 +305,7 @@ bool updateVertexbuffer(float& deltaX, float& deltaY, float& deltaRoll, float& c
     currentX += deltaX;
     currentY += deltaY;
 
-    for (int i = 0; i < vertexbuffer_size * 3; i += 3)
+    for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
     {
         vec4 v(g_vertex_buffer_data[i], g_vertex_buffer_data[i + 1], g_vertex_buffer_data[i + 2], 1);
         v = transform * v;

@@ -2,6 +2,10 @@
 cmake_minimum_required (VERSION 3.0)
 project (HelicopterGame)
 
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 find_package(OpenGL REQUIRED)
 
 
@@ -58,6 +62,7 @@ add_executable(playground
 	playground/playground.cpp
 	playground/playground.h
 	playground/stb_image.h
+	playground/stb.cpp
 	playground/SimpleFragmentShader.fragmentshader
 	playground/SimpleVertexShader.vertexshader
 	playground/TextureFragmentShader.fragmentshader
