@@ -1,0 +1,27 @@
+#version 330 core
+
+// Ouput data
+out vec3 fragColor;
+
+in vec3 color;
+in vec2 texCoord;
+
+void main()
+{
+
+	// Output color = red 
+	fragColor = vec3(1,0,0);
+
+}
+
+
+// #version 330 core
+
+// // Ouput data
+// out vec color;
+// 
+// void main()
+// {
+// 	// Output color = red 
+// 	color = vec3(1,0,0);
+// }

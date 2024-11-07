@@ -1,0 +1,43 @@
+#ifndef PLAYGROUND_H
+#define PLAYGROUND_H
+
+// Include GLEW
+#include <GL/glew.h>
+
+#include <glm/glm.hpp>
+
+// some global variables for handling the vertex buffer
+GLuint vertexbuffer;
+GLuint elementbuffer;
+GLuint vertexArrayID;
+GLuint vertexbuffer_size;
+
+// program ID of the shaders, required for handling the shaders with OpenGL
+GLuint shaderProgram;
+
+//
+GLfloat* g_vertex_buffer_data;
+GLint* g_vertex_buffer_indices;
+
+// Texture
+//int helicopterWidth, helicopterHeight, helicopterNrChannels;
+//unsigned char* helicopterData;
+GLuint helicopterTextureID;
+int backgroundWidth, backgroundHeight, backgroundNrChannels;
+unsigned char* backgroundData;
+
+int main(void);                //<<< main function, called at startup
+void updateAnimationLoop();    //<<< updates the animation loop
+bool initializeWindow();       //<<< initializes the window using GLFW and GLEW
+bool initializeVertexbuffer(); //<<< initializes the vertex buffer array and binds it OpenGL
+bool initialzeTexture();		// <<< initializes the textures
+bool updateVertexbuffer(float&, float&, float&, float&, float&, float&);
+bool cleanupVertexbuffer(); //<<< frees all recources from the vertex buffer
+bool closeWindow();         //<<< Closes the OpenGL window and terminates GLFW
+
+void handleInputs(float&, float&, float&, float&, float&, float&);
+void handleGravity(float&, float&, float&);
+
+
+
+#endif
