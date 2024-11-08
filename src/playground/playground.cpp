@@ -15,6 +15,7 @@ GLFWwindow *window;
 // Include GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 using namespace glm;
 
 #include <common/shader.hpp>
@@ -51,9 +52,9 @@ int main(void)
     // start animation loop until escape key is pressed
     do
     {
-        //clock_t beginTime = clock();
+        clock_t beginTime = clock();
         
-        //handleInputs(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll);
+        handleInputs(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll);
 
         //handleGravity(deltaX, deltaY, deltaRoll);
 
@@ -64,7 +65,7 @@ int main(void)
         updateAnimationLoop();
 
         // min time for one loop 10mss
-        //Sleep(max(10 - float(clock() - beginTime), 0.f));
+        Sleep(max(10 - float(clock() - beginTime), 0.f));
     } // Check if the ESC key was pressed or the window was closed
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
            glfwWindowShouldClose(window) == 0);
@@ -81,7 +82,6 @@ void updateAnimationLoop()
 {
     // Specify the color of the background
     glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-
     // Clear the back buffer 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -92,11 +92,16 @@ void updateAnimationLoop()
     //glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
 
+    // Set the uniform location and set 
+    glUseProgram(shaderProgram);
+    transformLoc = glGetUniformLocation(shaderProgram, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transformMat));
+
     // Bind the vertex array object
     glBindVertexArray(vertexArrayID);
 
     // Draw the triangles
-    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); //glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, g_vertex_buffer_indices);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // Swap buffers
@@ -112,7 +117,7 @@ void updateAnimationLoop()
 
 bool initializeWindow()
 {
-    int width = 1024, height = 1024;
+    int width = 1536, height = 1536;
     // Initialise GLFW
     if (!glfwInit())
     {
@@ -156,23 +161,28 @@ bool initializeWindow()
 bool initializeVertexbuffer()
 {
     vertexbuffer_size = 4;
+    vec3 btmLeftV = vec3(-0.15f, -0.05f, 0.0f);   vec2 btmLeftTC = vec2(0.13f, 0.0f);
+    vec3 topLeftV = vec3(-0.15f, 0.05f, 0.0f);    vec2 topLeftTC = vec2(0.13f, 1.0f);
+    vec3 topRightV = vec3(0.15f, 0.05f, 0.0f);    vec2 topRightTC = vec2(0.95f, 1.0f);
+    vec3 btmRightV = vec3(0.15f, -0.05f, 0.0f);   vec2 btmRightTC = vec2(0.95f, 0.0f);
+
     // g_vertex_buffer_data = new GLfloat[vertexbuffer_size * (3 + 3 + 2)]{    // vertexbuffer_size * (positions + colors + texure coords)
     GLfloat g_vertex_buffer_data[] = {
-        // position             // colors           // texture coords
+        // position                                // colors            // texture coords
         // first triangle
-         0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 0.0f,   1.0f, 0.0f,     // bottom right
-        -0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 0.0f,     // bottom left
-        -0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f,     // top left
+        btmRightV.x, btmRightV.y, btmRightV.z,     1.0f, 1.0f, 0.0f,    btmRightTC.x, btmRightTC.y,     // bottom right
+        btmLeftV.x,  btmLeftV.y,  btmLeftV.z,      1.0f, 1.0f, 0.0f,    btmLeftTC.x,  btmLeftTC.y,      // bottom left
+        topLeftV.x,  topLeftV.y,  topLeftV.z,      1.0f, 1.0f, 0.0f,    topLeftTC.x,  topLeftTC.y,      // top left
 
         // second triangle
-        -0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f,      // top left
-         0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 1.0f,      // top right
-         0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f       // bottom right
+        topLeftV.x,  topLeftV.y,  topLeftV.z,      1.0f, 1.0f, 0.0f,    topLeftTC.x,  topLeftTC.y,      // top left
+        topRightV.x, topRightV.y, topRightV.z,     1.0f, 1.0f, 0.0f,    topRightTC.x, topRightTC.y,     // top right
+        btmRightV.x, btmRightV.y, btmRightV.z,     1.0f, 1.0f, 0.0f,    btmRightTC.x, btmRightTC.y,     // bottom right
 
-    };    
-    
+    };
+
     //// g_vertex_buffer_indices = new GLint[6]{    // vertexbuffer_size * (positions + colors + texure coords)
-    //GLfloat g_vertex_buffer_indices[] = {
+    //GLint g_vertex_buffer_indices[] = {
     //    0, 1, 3,    // first triangle
     //    1, 2, 3     // second triangle
     //};
@@ -278,65 +288,46 @@ bool initialzeTexture()
 
 bool updateVertexbuffer(float& deltaX, float& deltaY, float& deltaRoll, float& currentX, float& currentY, float& currentRoll)
 {
-    // Limit Roll
-    if (currentRoll < -20 && deltaRoll < 0)
-    {
-        deltaRoll = 0;
-    }
-    else if (currentRoll > 20 && deltaRoll > 0)
-    {
-        deltaRoll = 0;
-    }
-    else
-    {
-        currentRoll += deltaRoll;
-    }
+    
 
     // Window bounding
-    for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
-    {
-        if (deltaX == 0 && deltaY == 0) 
-        {
-            break;
-        }
-        vec4 v(g_vertex_buffer_data[i], g_vertex_buffer_data[i + 1], g_vertex_buffer_data[i + 2], 1);
-        // Hit x bounding
-        if (v.x >= 1.0 && deltaX > 0) {
-            deltaX = 0;
-        }
-        else if (v.x <= -1.0 && deltaX < 0) {
-            deltaX = 0;
-        }
-        // Hit y bounding
-        if (v.y >= 1.0 && deltaY > 0) {
-            deltaY = 0;
-        }
-        else if (v.y <= -1.0 && deltaY < 0) {
-            deltaY = 0;
-        }
-        
-    }
+    //for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
+    //{
+    //    if (deltaX == 0 && deltaY == 0) 
+    //    {
+    //        break;
+    //    }
+    //    vec4 v(g_vertex_buffer_data[i], g_vertex_buffer_data[i + 1], g_vertex_buffer_data[i + 2], 1);
+    //    // Hit x bounding
+    //    if (v.x >= 1.0 && deltaX > 0) {
+    //        deltaX = 0;
+    //    }
+    //    else if (v.x <= -1.0 && deltaX < 0) {
+    //        deltaX = 0;
+    //    }
+    //    // Hit y bounding
+    //    if (v.y >= 1.0 && deltaY > 0) {
+    //        deltaY = 0;
+    //    }
+    //    else if (v.y <= -1.0 && deltaY < 0) {
+    //        deltaY = 0;
+    //    }
+    //    
+    //}
 
-    // Move to origin -> Rotate around origin -> Move Back to position -> Move about delta
-    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(deltaX, deltaY, 0.0))
-                        * glm::translate(glm::mat4(1.0f), glm::vec3(currentX, currentY, 0.0))
-                        * glm::rotate(glm::mat4(1.0f), glm::radians(deltaRoll), glm::vec3(0, 0, 1))
-                        * glm::translate(glm::mat4(1.0f), glm::vec3(-currentX, -currentY, 0.0));
+    
 
-    currentX += deltaX;
-    currentY += deltaY;
-
-    for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
+    /*for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
     {
         vec4 v(g_vertex_buffer_data[i], g_vertex_buffer_data[i + 1], g_vertex_buffer_data[i + 2], 1);
         v = transform * v;
         g_vertex_buffer_data[i] = v.x;
         g_vertex_buffer_data[i + 1] = v.y;
         g_vertex_buffer_data[i + 2] = v.z;
-    }
+    }*/
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
     return true;
 }
@@ -417,6 +408,29 @@ void handleInputs(float& deltaX, float& deltaY, float& deltaRoll, float& current
 
     // normalize angle roll
     deltaRoll = max(-3.f, min(deltaRoll, 3.f));
+
+    // Limit Roll
+    if (currentRoll < -20 && deltaRoll < 0)
+    {
+        deltaRoll = 0;
+    }
+    else if (currentRoll > 20 && deltaRoll > 0)
+    {
+        deltaRoll = 0;
+    }
+    else
+    {
+        currentRoll += deltaRoll;
+    }
+
+    // Move to origin -> Rotate around origin -> Move Back to position -> Move about delta
+    transformMat = translate(transformMat, vec3(-currentX, -currentY, 0.0));
+    transformMat = rotate(transformMat, radians(deltaRoll), vec3(0, 0, 1));
+    transformMat = translate(transformMat, vec3(currentX, currentY, 0.0));
+    transformMat = translate(transformMat, vec3(deltaX, deltaY, 0.0));
+
+    currentX += deltaX;
+    currentY += deltaY;
 }
 
 void handleGravity(float& deltaX, float& deltaY, float& deltaRoll) 

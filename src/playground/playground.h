@@ -15,16 +15,15 @@ GLuint vertexbuffer_size;
 // program ID of the shaders, required for handling the shaders with OpenGL
 GLuint shaderProgram;
 
-//
-GLfloat* g_vertex_buffer_data;
-GLint* g_vertex_buffer_indices;
+//GLfloat* g_vertex_buffer_data;
+//GLint* g_vertex_buffer_indices;
 
 // Texture
-//int helicopterWidth, helicopterHeight, helicopterNrChannels;
-//unsigned char* helicopterData;
 GLuint helicopterTextureID;
-int backgroundWidth, backgroundHeight, backgroundNrChannels;
-unsigned char* backgroundData;
+
+// Transformation 
+GLuint transformLoc;
+glm::mat4 transformMat = glm::mat4(1.0f);
 
 int main(void);                //<<< main function, called at startup
 void updateAnimationLoop();    //<<< updates the animation loop
