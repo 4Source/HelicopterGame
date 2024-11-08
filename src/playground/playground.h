@@ -20,6 +20,8 @@ GLuint shaderProgram;
 
 // Texture
 GLuint helicopterTextureID;
+GLuint spriteLoc;
+glm::vec2 spriteOffset = glm::vec2(0.0f, 0.0f);
 
 // Transformation 
 GLuint transformLoc;
@@ -36,6 +38,7 @@ bool closeWindow();         //<<< Closes the OpenGL window and terminates GLFW
 void handleInputs(float&, float&, float&, float&, float&, float&);
 void handleGravity(float&, float&, float&);
 void updateTransform(float&, float&, float&, float&, float&, float&);
+void updateSprite();
 
 
 #endif

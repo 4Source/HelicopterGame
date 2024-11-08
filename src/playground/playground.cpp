@@ -61,6 +61,8 @@ int main(void)
         //// Update transformation
         updateTransform(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll);
 
+        updateSprite();
+
         updateAnimationLoop();
 
         // min time for one loop 10mss
@@ -80,7 +82,7 @@ int main(void)
 void updateAnimationLoop()
 {
     // Specify the color of the background
-    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.0f, 0.5f, 0.8f, 1.0f);
     // Clear the back buffer 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -95,6 +97,11 @@ void updateAnimationLoop()
     glUseProgram(shaderProgram);
     transformLoc = glGetUniformLocation(shaderProgram, "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transformMat));
+
+    // Set the uniform location and set 
+    glUseProgram(shaderProgram);
+    spriteLoc = glGetUniformLocation(shaderProgram, "spriteOffset");
+    glUniform2fv(spriteLoc, 1, value_ptr(spriteOffset));
 
     // Bind the vertex array object
     glBindVertexArray(vertexArrayID);
@@ -160,10 +167,10 @@ bool initializeWindow()
 bool initializeVertexbuffer()
 {
     vertexbuffer_size = 4;
-    vec3 btmLeftV = vec3(-0.15f, -0.05f, 0.0f);   vec2 btmLeftTC = vec2(0.13f, 0.0f);
-    vec3 topLeftV = vec3(-0.15f, 0.05f, 0.0f);    vec2 topLeftTC = vec2(0.13f, 1.0f);
-    vec3 topRightV = vec3(0.15f, 0.05f, 0.0f);    vec2 topRightTC = vec2(0.95f, 1.0f);
-    vec3 btmRightV = vec3(0.15f, -0.05f, 0.0f);   vec2 btmRightTC = vec2(0.95f, 0.0f);
+    vec3 btmLeftV = vec3(-0.15f, -0.05f, 0.0f);   vec2 btmLeftTC = vec2(0.13f / 8.0f, 0.0f);
+    vec3 topLeftV = vec3(-0.15f, 0.05f, 0.0f);    vec2 topLeftTC = vec2(0.13f / 8.0f, 1.0f);
+    vec3 topRightV = vec3(0.15f, 0.05f, 0.0f);    vec2 topRightTC = vec2(0.95f / 8.0f, 1.0f);
+    vec3 btmRightV = vec3(0.15f, -0.05f, 0.0f);   vec2 btmRightTC = vec2(0.95f / 8.0f, 0.0f);
 
     // g_vertex_buffer_data = new GLfloat[vertexbuffer_size * (3 + 3 + 2)]{    // vertexbuffer_size * (positions + colors + texure coords)
     GLfloat g_vertex_buffer_data[] = {
@@ -232,7 +239,8 @@ bool initialzeTexture()
     // Import the texture
     // https://opengameart.org/content/helicopter-2
     std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
-    std::string helicopterPath = parentDir + "\\assets\\separated_frames\\helicopter_1.png";
+    std::string helicopterPath = parentDir + "\\assets\\helicopter.png";
+    //std::string helicopterPath = parentDir + "\\assets\\separated_frames\\helicopter_1.png";
     int helicopterWidth, helicopterHeight, helicopterNrChannels;
     // Flip image
     stbi_set_flip_vertically_on_load(true);
@@ -412,5 +420,19 @@ void updateTransform(float& deltaX, float& deltaY, float& deltaRoll, float& curr
 
     currentX += deltaX;
     currentY += deltaY;
+}
+
+void updateSprite()
+{
+    float offset = spriteOffset.x + 1.0f / 8.0f;
+
+    if (offset > 1.0f) 
+    {
+        spriteOffset = vec2(0.0f, 0.0f);
+    }
+    else
+    {
+        spriteOffset = vec2(offset, 0.0f);
+    }
 }
 

@@ -8,9 +8,11 @@ in vec2 texCoord;
 
 uniform sampler2D tex0;
 
+uniform vec2 spriteOffset;
+
 void main()
 {
-	FragColor = texture(tex0, texCoord) * vec4(color, 1.0); 
+	FragColor = texture(tex0, texCoord + spriteOffset) * vec4(color, 1.0); 
 
 	if(FragColor.a == 0.0) {
 		discard;
