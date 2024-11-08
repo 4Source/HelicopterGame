@@ -56,11 +56,10 @@ int main(void)
         
         handleInputs(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll);
 
-        //handleGravity(deltaX, deltaY, deltaRoll);
+        handleGravity(deltaX, deltaY, deltaRoll);
 
-        //// Update vertex buffer
-        //if (!updateVertexbuffer(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll))
-        //    return -1;
+        //// Update transformation
+        updateTransform(deltaX, deltaY, deltaRoll, currentX, currentY, currentRoll);
 
         updateAnimationLoop();
 
@@ -286,52 +285,6 @@ bool initialzeTexture()
     return true;
 }
 
-bool updateVertexbuffer(float& deltaX, float& deltaY, float& deltaRoll, float& currentX, float& currentY, float& currentRoll)
-{
-    
-
-    // Window bounding
-    //for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
-    //{
-    //    if (deltaX == 0 && deltaY == 0) 
-    //    {
-    //        break;
-    //    }
-    //    vec4 v(g_vertex_buffer_data[i], g_vertex_buffer_data[i + 1], g_vertex_buffer_data[i + 2], 1);
-    //    // Hit x bounding
-    //    if (v.x >= 1.0 && deltaX > 0) {
-    //        deltaX = 0;
-    //    }
-    //    else if (v.x <= -1.0 && deltaX < 0) {
-    //        deltaX = 0;
-    //    }
-    //    // Hit y bounding
-    //    if (v.y >= 1.0 && deltaY > 0) {
-    //        deltaY = 0;
-    //    }
-    //    else if (v.y <= -1.0 && deltaY < 0) {
-    //        deltaY = 0;
-    //    }
-    //    
-    //}
-
-    
-
-    /*for (unsigned int i = 0; i < vertexbuffer_size * 3; i += 3)
-    {
-        vec4 v(g_vertex_buffer_data[i], g_vertex_buffer_data[i + 1], g_vertex_buffer_data[i + 2], 1);
-        v = transform * v;
-        g_vertex_buffer_data[i] = v.x;
-        g_vertex_buffer_data[i + 1] = v.y;
-        g_vertex_buffer_data[i + 2] = v.z;
-    }*/
-
-    //glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    return true;
-}
-
 bool cleanupVertexbuffer()
 {
     // Cleanup VBO
@@ -422,21 +375,42 @@ void handleInputs(float& deltaX, float& deltaY, float& deltaRoll, float& current
     {
         currentRoll += deltaRoll;
     }
-
-    // Move to origin -> Rotate around origin -> Move Back to position -> Move about delta
-    transformMat = translate(transformMat, vec3(-currentX, -currentY, 0.0));
-    transformMat = rotate(transformMat, radians(deltaRoll), vec3(0, 0, 1));
-    transformMat = translate(transformMat, vec3(currentX, currentY, 0.0));
-    transformMat = translate(transformMat, vec3(deltaX, deltaY, 0.0));
-
-    currentX += deltaX;
-    currentY += deltaY;
 }
 
-void handleGravity(float& deltaX, float& deltaY, float& deltaRoll) 
+void handleGravity(float& deltaX, float& deltaY, float& deltaRoll)
 {    
     deltaY -= 0.001f;
     // normalize y
-    deltaY = max(-0.04f, min(deltaY, 0.02f));
+    deltaY = max(-0.04f, min(deltaY, 0.02f));    
+}
+
+void updateTransform(float& deltaX, float& deltaY, float& deltaRoll, float& currentX, float& currentY, float& currentRoll)
+{
+    // Window bounding
+    // Hit x bounding
+    if (currentX >= 1.0 && deltaX > 0) {
+        deltaX = 0;
+    }
+    else if (currentX <= -1.0 && deltaX < 0) {
+        deltaX = 0;
+    }
+    // Hit y bounding
+    if (currentY >= 1.0 && deltaY > 0) {
+        deltaY = 0;
+    }
+    else if (currentY <= -1.0 && deltaY < 0) {
+        deltaY = 0;
+    }
+        
+     
+    // Move to origin -> Rotate around origin -> Move Back to position -> Move about delta
+    transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(deltaX, deltaY, 0.0))
+        * glm::translate(glm::mat4(1.0f), glm::vec3(currentX, currentY, 0.0))
+        * glm::rotate(glm::mat4(1.0f), glm::radians(deltaRoll), glm::vec3(0, 0, 1))
+        * glm::translate(glm::mat4(1.0f), glm::vec3(-currentX, -currentY, 0.0))
+        * transformMat;
+
+    currentX += deltaX;
+    currentY += deltaY;
 }
 

@@ -30,13 +30,12 @@ void updateAnimationLoop();    //<<< updates the animation loop
 bool initializeWindow();       //<<< initializes the window using GLFW and GLEW
 bool initializeVertexbuffer(); //<<< initializes the vertex buffer array and binds it OpenGL
 bool initialzeTexture();		// <<< initializes the textures
-bool updateVertexbuffer(float&, float&, float&, float&, float&, float&);
 bool cleanupVertexbuffer(); //<<< frees all recources from the vertex buffer
 bool closeWindow();         //<<< Closes the OpenGL window and terminates GLFW
 
 void handleInputs(float&, float&, float&, float&, float&, float&);
 void handleGravity(float&, float&, float&);
-
+void updateTransform(float&, float&, float&, float&, float&, float&);
 
 
 #endif
