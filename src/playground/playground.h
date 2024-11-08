@@ -19,7 +19,7 @@ GLuint shaderProgram;
 //GLint* g_vertex_buffer_indices;
 
 // Texture
-GLuint helicopterTextureID;
+GLuint textureID;
 GLuint spriteLoc;
 glm::vec2 spriteOffset = glm::vec2(0.0f, 0.0f);
 

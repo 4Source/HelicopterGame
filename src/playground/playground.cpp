@@ -88,10 +88,10 @@ void updateAnimationLoop()
 
     // render container
     glUseProgram(shaderProgram);
-    
+
     // Bind textures on corresponding texture units
     //glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Set the uniform location and set 
     glUseProgram(shaderProgram);
@@ -233,14 +233,18 @@ bool initializeVertexbuffer()
 
 bool initialzeTexture()
 {
+    std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
+
     // Enabel texturing
     glEnable(GL_TEXTURE_2D);
 
+    // Generate OpenGL texture object
+    glGenTextures(1, &textureID); // number of textures, pointer to texture objects
+
     // Import the texture
     // https://opengameart.org/content/helicopter-2
-    std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
-    std::string helicopterPath = parentDir + "\\assets\\helicopter.png";
     //std::string helicopterPath = parentDir + "\\assets\\separated_frames\\helicopter_1.png";
+    std::string helicopterPath = parentDir + "\\assets\\helicopter.png";
     int helicopterWidth, helicopterHeight, helicopterNrChannels;
     // Flip image
     stbi_set_flip_vertically_on_load(true);
@@ -252,12 +256,9 @@ bool initialzeTexture()
         return false;
     }
 
-    // Generate OpenGL texture object
-    glGenTextures(1, &helicopterTextureID);
-
     // Assign the texture to a texture unit
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Configure the type of algorithm that is used to make the image smaller or bigger
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -280,15 +281,14 @@ bool initialzeTexture()
 
     // Background asset 
     // <a href="https://www.vectorstock.com/royalty-free-vector/turquoise-cave-of-stalagmites-and-stalactites-vector-50064667">Vector image by VectorStock / Heorhii</a>
-    // TODO: Load background image
     //glActiveTexture(GL_TEXTURE2);
-    //glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
+    //glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Activate the Shader program
     glUseProgram(shaderProgram);
     // Set the value of the uniform 
     glUniform1i(glGetUniformLocation(shaderProgram, "tex0"), 0);
-    //glUniform1i(glGetUniformLocation(shaderProgram, "helicopterTextureID"), 1);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "background"), 1);
 
     return true;
 }
