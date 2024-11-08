@@ -96,11 +96,18 @@ void updateAnimationLoop()
     glBindVertexArray(vertexArrayID);
 
     // Draw the triangles
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // Swap buffers
     glfwSwapBuffers(window);
     glfwPollEvents();
+
+    // Unbind vertex array
+    glBindVertexArray(0);
+
+    // Unbind the OpenGL texture object
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 bool initializeWindow()
@@ -152,17 +159,23 @@ bool initializeVertexbuffer()
     // g_vertex_buffer_data = new GLfloat[vertexbuffer_size * (3 + 3 + 2)]{    // vertexbuffer_size * (positions + colors + texure coords)
     GLfloat g_vertex_buffer_data[] = {
         // position             // colors           // texture coords
-         0.5f,  0.5f,  0.0f,     1.0f, 0.0f, 0.0f,   1.0f, 1.0f,     // top right
-         0.5f, -0.5f,  0.0f,     0.0f, 1.0f, 0.0f,   1.0f, 0.0f,     // bottom right
-        -0.5f, -0.5f,  0.0f,     0.0f, 0.0f, 1.0f,   0.0f, 0.0f,     // bottom left
-        -0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 0.0f,   0.0f, 1.0f      // top left
+        // first triangle
+         0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 0.0f,   1.0f, 0.0f,     // bottom right
+        -0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 0.0f,     // bottom left
+        -0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f,     // top left
+
+        // second triangle
+        -0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f,      // top left
+         0.5f,  0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 1.0f,      // top right
+         0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f       // bottom right
+
     };    
     
-    // g_vertex_buffer_indices = new GLint[6]{    // vertexbuffer_size * (positions + colors + texure coords)
-    GLfloat g_vertex_buffer_indices[] = {
-        0, 1, 3,    // first triangle
-        1, 2, 3     // second triangle
-    };
+    //// g_vertex_buffer_indices = new GLint[6]{    // vertexbuffer_size * (positions + colors + texure coords)
+    //GLfloat g_vertex_buffer_indices[] = {
+    //    0, 1, 3,    // first triangle
+    //    1, 2, 3     // second triangle
+    //};
 
     // Generate the vertex array object and bind it
     glGenVertexArrays(1, &vertexArrayID); // VAO
@@ -174,20 +187,25 @@ bool initializeVertexbuffer()
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
     // Generate element buffer object and link it ot indices
-    glGenBuffers(1, &elementbuffer); // EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_vertex_buffer_indices), g_vertex_buffer_indices, GL_STATIC_DRAW);
+    //glGenBuffers(1, &elementbuffer); // EBO
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_vertex_buffer_indices), g_vertex_buffer_indices, GL_STATIC_DRAW);
 
     // Link vertex buffer object attributes 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // index, size, type, normalized, size of arraybuffer, offset
     glEnableVertexAttribArray(0);
-    // position attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // index, size, type, normalized, size of arraybuffer, offset
     glEnableVertexAttribArray(1);
-    // position attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+    // texture coordinates attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // index, size, type, normalized, size of arraybuffer, offset
     glEnableVertexAttribArray(2);
+
+    //glPolygonMode(GL_FRONT, GL_FILL);
+    //glPolygonMode(GL_BACK, GL_FILL);
 
     // Unbind all to prevent accidentally modifying them
     glBindVertexArray(0);
@@ -199,11 +217,17 @@ bool initializeVertexbuffer()
 
 bool initialzeTexture()
 {
+    // Enabel texturing
+    glEnable(GL_TEXTURE_2D);
+
     // Import the texture
     // https://opengameart.org/content/helicopter-2
     std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
     std::string helicopterPath = parentDir + "\\assets\\separated_frames\\helicopter_1.png";
     int helicopterWidth, helicopterHeight, helicopterNrChannels;
+    // Flip image
+    stbi_set_flip_vertically_on_load(true);
+    // Load image
     unsigned char* helicopterData = stbi_load(helicopterPath.c_str(), &helicopterWidth, &helicopterHeight, &helicopterNrChannels, 0);
 
     if (!helicopterData) {
@@ -217,9 +241,6 @@ bool initialzeTexture()
     // Assign the texture to a texture unit
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, helicopterTextureID);
-
-    glPolygonMode(GL_FRONT, GL_FILL);
-    glPolygonMode(GL_BACK, GL_FILL);
 
     // Configure the type of algorithm that is used to make the image smaller or bigger
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
