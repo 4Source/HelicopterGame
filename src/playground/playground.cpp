@@ -176,14 +176,14 @@ bool initializeVertexbuffer()
     GLfloat g_vertex_buffer_data[] = {
         // position                                // colors            // texture coords
         // first triangle
-        btmRightV.x, btmRightV.y, btmRightV.z,     1.0f, 1.0f, 0.0f,    btmRightTC.x, btmRightTC.y,     // bottom right
-        btmLeftV.x,  btmLeftV.y,  btmLeftV.z,      1.0f, 1.0f, 0.0f,    btmLeftTC.x,  btmLeftTC.y,      // bottom left
-        topLeftV.x,  topLeftV.y,  topLeftV.z,      1.0f, 1.0f, 0.0f,    topLeftTC.x,  topLeftTC.y,      // top left
+        btmRightV.x, btmRightV.y, btmRightV.z,     1.0f, 1.0f, 1.0f,    btmRightTC.x, btmRightTC.y,     // bottom right
+        btmLeftV.x,  btmLeftV.y,  btmLeftV.z,      1.0f, 1.0f, 1.0f,    btmLeftTC.x,  btmLeftTC.y,      // bottom left
+        topLeftV.x,  topLeftV.y,  topLeftV.z,      1.0f, 1.0f, 1.0f,    topLeftTC.x,  topLeftTC.y,      // top left
 
         // second triangle
-        topLeftV.x,  topLeftV.y,  topLeftV.z,      1.0f, 1.0f, 0.0f,    topLeftTC.x,  topLeftTC.y,      // top left
-        topRightV.x, topRightV.y, topRightV.z,     1.0f, 1.0f, 0.0f,    topRightTC.x, topRightTC.y,     // top right
-        btmRightV.x, btmRightV.y, btmRightV.z,     1.0f, 1.0f, 0.0f,    btmRightTC.x, btmRightTC.y,     // bottom right
+        topLeftV.x,  topLeftV.y,  topLeftV.z,      1.0f, 1.0f, 1.0f,    topLeftTC.x,  topLeftTC.y,      // top left
+        topRightV.x, topRightV.y, topRightV.z,     1.0f, 1.0f, 1.0f,    topRightTC.x, topRightTC.y,     // top right
+        btmRightV.x, btmRightV.y, btmRightV.z,     1.0f, 1.0f, 1.0f,    btmRightTC.x, btmRightTC.y,     // bottom right
 
     };
 
@@ -264,8 +264,8 @@ bool initialzeTexture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Configure the way the texture repeats
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // Assign the image to the OpenGL texture object
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, helicopterWidth, helicopterHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, helicopterData);
@@ -426,7 +426,7 @@ void updateSprite()
 {
     float offset = spriteOffset.x + 1.0f / 8.0f;
 
-    if (offset > 1.0f) 
+    if (offset > 1.0f / 8.0f * 7.0f)
     {
         spriteOffset = vec2(0.0f, 0.0f);
     }
